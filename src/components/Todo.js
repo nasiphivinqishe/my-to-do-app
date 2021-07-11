@@ -1,8 +1,46 @@
 import React, { useEffect, useState } from "react";
-const Todo = () => {
+import { makeStyles, createStyles } from "@material-ui/core/styles";
 
+const useStyles = makeStyles((theme) =>
+    createStyles({
+        snackbar: {
+            visibility: "hidden",
+            minWidth: "250px",
+            marginLeft: "-125px",
+            background: "#333",
+            color: "#fff",
+            textAlign: "center",
+            borderRadius: "2px",
+            padding: "16px",
+            position: "fixed",
+            zIndex: "1",
+            left: "50%",
+            bottom: "30px",
+            fontSize: "17px"
+        },
+        loading: {
+            position: "fixed",
+            zIndex: "999",
+            overflow: "show",
+            margin: "auto",
+            top: "0",
+            left: "0",
+            bottom: "0",
+            right: "0",
+            width: "50px",
+            height: "50px",
+        },
+    })
+);
+
+const Todo = () => {
+    const styleClasess = new useStyles()
+
+    const [addTodoButtonTitle, setAddTodoButtonTitle] = useState("Add")
     //for list of todos
     const [todoList, setTodoList] = useState([]);
+
+    const [message, setMessage] = useState("")
 
     //for input of adding to do
     const [inputToDo, setInputToDo] = useState("")
@@ -15,8 +53,8 @@ const Todo = () => {
         const target = e.target
         var value = target.value
         setInputToDo(value)
+        setAddTodoButtonTitle("Add")
     };
-
     //handle adding todo(updating state of list)
     const addToDo = (e) => {
         e.preventDefault()
@@ -35,11 +73,10 @@ const Todo = () => {
 
             //update the value at that index
             tempToDoListToUpdate[todoIndex].value = inputToDo
-
             //update the main todolist state
             setTodoList(tempToDoListToUpdate)
 
-            //default index again and stop execution
+            //default index again and stop execution 
             setInputToDo("")
             setTodoIndex(-1)
             return
@@ -59,6 +96,9 @@ const Todo = () => {
 
         //use the method on hooks(useState) to update you state with temp state
         setTodoList(tempToDoList)
+
+        //update button
+        setAddTodoButtonTitle("Add")
     }
 
     const deleteToDo = (index) => {
@@ -84,6 +124,9 @@ const Todo = () => {
 
         //update the input field
         setInputToDo(itemToUpdate.value)
+
+        //update button
+        setAddTodoButtonTitle("Edit")
     }
 
 
@@ -98,21 +141,38 @@ const Todo = () => {
     const drop = (ev) => {
         ev.preventDefault();
         var data = ev.dataTransfer.getData("text");
-        ev.target.appendChild(document.getElementById(data));
+
+        if (ev.target.id == "completedToDoList") {
+            ev.target.appendChild(document.getElementById(data));
+        } else if (ev.target.id == "uncompletedToDoList") {
+            ev.target.appendChild(document.getElementById(data));
+        } else {
+            toggleToast("Dropping over item not allowed!")
+        }
+    }
+
+
+
+    const toggleToast = (message) => {
+        setMessage(message)
+        var x = document.getElementById("snackbar");
+        x.className = "show";
+        setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
     }
 
     return (
 
         <div className="container">
             <br></br>
+            <div id="snackbar" className={styleClasess.snackbar}>{message}</div>
             <div className="row">
                 <div className="col-sm-7">
                     <form onSubmit={addToDo}>
                         <div className="form-group">
-                            <input type="text" className="form-control" value={inputToDo} onChange={(e) => handleInputChange(e)} placeholder="Enter to do here..." />
+                            <input type="text" className="form-control" value={inputToDo} onChange={(e) => handleInputChange(e)} placeholder="Enter to-do here..." />
                         </div>
                         <div className="form-group">
-                            <button className="btn btn-md btn-success">Add Todo </button>
+                            <button className="btn btn-md btn-success" title="Add Todo">{addTodoButtonTitle} Todo <i class="fa fa-save" aria-hidden="true"></i></button>
                         </div>
                     </form>
                 </div>
@@ -129,9 +189,9 @@ const Todo = () => {
                                     <h3>
                                         {item.value}
                                         <div className="float-right">
-                                            <i className="fa fa-pencil-square-o" onClick={() => prepareUpdatingAToDo(index)}></i>
+                                            <i className="fa fa-pencil-square-o" title="Edit Todo" style={{ color: "green" }} onClick={() => prepareUpdatingAToDo(index)}></i>
                                             &nbsp;
-                                            <i className="fa fa-trash-o" onClick={() => deleteToDo(index)}></i>
+                                            <i className="fa fa-trash-o" title="Delete Todo" style={{ color: "red" }} onClick={() => deleteToDo(index)}></i>
                                         </div>
                                     </h3>
                                 </div>
